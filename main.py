@@ -1,25 +1,5 @@
 import pygame
 
-I = [[1, 1, 1, 1]]
-
-O = [[1, 1],
-     [1, 1]]
-
-T = [[1, 1, 1],
-     [0, 1, 0]]
-
-J = [[1, 0, 0],
-     [1, 1, 1]]
-
-L = [[0, 0, 1],
-     [1, 1, 1]]
-
-S = [[0, 1, 1],
-     [1, 1, 0]]
-
-Z = [[1, 1, 0],
-     [0, 1, 1]]
-
 
 class Game_Window():
     def __init__(self):
@@ -55,6 +35,14 @@ class Game_Window():
                              (fixed_x_value, fixed_y_value+self.square_size*(i+1)), (fixed_x_value+self.square_size*10, fixed_y_value+self.square_size*(i+1)))
         pygame.display.update()
 
+    def draw_fallen_pieces(self, grid, color):
+        for i, row in enumerate(grid):
+            for j, square in enumerate(row):
+                if square:
+                    pygame.draw.rect(self.display, (255, 0, 0), [
+                        j*self.square_size, i*self.square_size, self.square_size, self.square_size
+                    ])
+
 
 class Piece():
     def __init__(self, shape, rotation, position_x, position_y, display):
@@ -65,32 +53,13 @@ class Piece():
         self.display = display
         self.square_size = 20
 
-    def draw(self):
+    def draw(self, rotation, position_x, position_y):
+        print(self.shape)
         for i, row in enumerate(self.shape):
             for j, square in enumerate(row):
                 if square == 1:
                     pygame.draw.rect(self.display, (255, 0, 0),
-                                     [self.position_x+((j+1)*self.square_size), self.position_y+((i+1)*self.square_size),
+                                     [position_x+((j+1)*self.square_size), position_y+((i+1)*self.square_size),
                                       self.square_size, self.square_size]
                                      )
-                    print("DRAWING", [self.position_x+((j+1)*self.square_size), self.position_y+((i+1)*self.square_size),
-                                      self.square_size, self.square_size])
         pygame.display.update()
-
-
-def main():
-    game_window = Game_Window()
-    display = game_window.initialize()
-    game_window.create_game_board()
-    game_window.draw_grid()
-    piece = Piece(T, 0, 190, 30, display)
-    piece.draw()
-
-    run = True
-    while run:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-
-
-main()
