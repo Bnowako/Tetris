@@ -26,6 +26,8 @@ def main():
                     game_logic.handle_movement(event)
                 elif event.key == pygame.K_LEFT:
                     game_logic.handle_movement(event)
+                elif event.key == pygame.K_UP:
+                    game_logic.rotate_piece()
 
         if game_on == True:
             game_logic.handle_game(game_window)

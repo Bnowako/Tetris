@@ -29,8 +29,7 @@ class Game_Window():
 
         pygame.draw.lines(self.display, self.red, True,
                           [(self.fixed_x_value, self.fixed_y_value), (self.fixed_x_value+self.square_size*self.game_board_width, self.fixed_y_value), (self.fixed_x_value+self.square_size*self.game_board_width, self.fixed_y_value+self.square_size*self.game_board_height), (self.fixed_x_value, self.fixed_y_value+self.square_size*self.game_board_height)])
-        print((self.fixed_x_value, self.fixed_y_value), (self.fixed_x_value+self.square_size*self.game_board_width, self.fixed_y_value), (self.fixed_x_value+self.square_size *
-                                                                                                                                          self.game_board_width, self.fixed_y_value+self.square_size*self.game_board_height), (self.fixed_x_value, self.fixed_y_value+self.square_size*self.game_board_height))
+
         pygame.display.update()
 
     def draw_grid(self):
@@ -67,6 +66,10 @@ class Piece():
     def draw(self, rotation, position_x, position_y):
         # print(self.shape)
         # print(position_x, position_y)
+        if self.rotation:
+            print("ROTATE")
+            self.rotation = False
+
         for i, row in enumerate(self.shape):
             for j, square in enumerate(row):
                 if square == 1:

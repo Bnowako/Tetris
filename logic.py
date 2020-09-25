@@ -23,7 +23,7 @@ class GameLogic():
         self.piece_position_y = (
             self.window_y - (self.game_board_height*self.square_size))//2
 
-        self.piece = Piece("I", 1, self.piece_position_x,
+        self.piece = Piece("I", False, self.piece_position_x,
                            self.piece_position_y, self.display)
 
         self.pieces = ["T", "I", "O", "J", "L", "Z", "S"]
@@ -52,22 +52,18 @@ class GameLogic():
 
     def track_grid_collisions(self):
         self.update_grid_column_and_row()
-        piece_height = len(self.cfg[self.current_piece_name])
-        print(self.grid_row, piece_height)
+        piece_height = len(self.piece.shape)
+        # print(self.grid_row, piece_height)
 
         if self.grid_row + piece_height == self.game_board_height:
             self.stop_current_piece(self.grid_row, self.grid_column)
         else:
-            for i, row in enumerate(self.cfg[self.current_piece_name]):
+            for i, row in enumerate(self.piece.shape):
                 for j, square in enumerate(row):
-                    print(self.grid_row+1, self.grid_column+j)
+                    # print(self.grid_row+1, self.grid_column+j)
                     if self.grid[self.grid_row+(i+1)][self.grid_column+j] and square:
                         self.stop_current_piece(
                             self.grid_row, self.grid_column)
-
-            # for i, square in enumerate(self.cfg[self.current_piece_name][piece_height-1]):
-            #     if self.grid[self.grid_row + piece_height][self.grid_column+i] == 1 and square:
-            #         self.stop_current_piece(self.grid_row, self.grid_column)
 
         # print(grid_column, grid_row)
 
@@ -77,12 +73,12 @@ class GameLogic():
             self.window_y - (self.game_board_height*self.square_size))//2
 
         self.current_piece_name = self.get_random_piece()
-        self.piece = Piece(self.cfg[self.current_piece_name], 1, self.piece_position_x,
+        self.piece = Piece(self.cfg[self.current_piece_name], False, self.piece_position_x,
                            self.piece_position_y, self.display)
         self.new_piece_needed = False
 
     def stop_current_piece(self, grid_row, grid_column):
-        for i, row in enumerate(self.cfg[self.current_piece_name]):
+        for i, row in enumerate(self.piece.shape):
             for j, square in enumerate(row):
                 if square:
                     self.grid[grid_row+i][grid_column+j] = 1
@@ -90,7 +86,6 @@ class GameLogic():
         # print(self.grid)
 
     def handle_movement(self, event):
-        print(event.__dict__['key'])
         right_arrow = 275
         left_arrow = 276
 
@@ -106,7 +101,7 @@ class GameLogic():
                 self.update_grid_column_and_row()
 
     def validate_movemenet(self, direction):
-        piece_width = len(self.cfg[self.current_piece_name][0])
+        piece_width = len(self.piece.shape[0])
 
         if direction == "right":
             if self.grid_column + piece_width == self.game_board_width:
@@ -124,3 +119,13 @@ class GameLogic():
                              ((self.window_x - self.game_board_width * self.square_size)//2))//self.square_size)
         self.grid_row = ((self.piece_position_y -
                           ((self.window_y - self.game_board_height*self.square_size)//2))//self.square_size)
+
+    def rotate_piece(self):
+        temp_list = [[0 for i in range(len(self.piece.shape))]
+                     for i in range(len(self.piece.shape[0]))]
+
+        for i, row in enumerate(self.piece.shape):
+            for j, square in enumerate(row):
+                temp_list[j][-1*(i+1)] = square
+
+        self.piece.shape = temp_list
