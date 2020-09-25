@@ -13,7 +13,13 @@ class Config():
             'S': [[0, 1, 1],
                   [1, 1, 0]],
             'Z': [[1, 1, 0],
-                  [0, 1, 1]]
+                  [0, 1, 1]],
+            'window_x': 500,
+            'window_y': 500,
+            'square_size': 20,
+            'game_board_width': 10,
+            'game_board_height': 20
+
 
         }
 

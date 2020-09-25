@@ -22,11 +22,15 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     game_on = not game_on
+                elif event.key == pygame.K_RIGHT:
+                    game_logic.handle_movement(event)
+                elif event.key == pygame.K_LEFT:
+                    game_logic.handle_movement(event)
 
         if game_on == True:
             game_logic.handle_game(game_window)
 
-        clock.tick(1)
+        clock.tick(5)
 
 
 main()
