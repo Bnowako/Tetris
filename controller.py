@@ -32,7 +32,7 @@ def main():
         if game_on == True:
             game_logic.handle_game(game_window)
 
-        clock.tick(5)
+        clock.tick(10)
 
 
 main()
