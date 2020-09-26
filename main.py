@@ -22,6 +22,9 @@ class Game_Window():
 
     def initialize(self):
         pygame.init()
+        pygame.font.init()
+        self.myfont = pygame.font.SysFont('Comic Sans MS', 30)
+
         self.display = pygame.display.set_mode((self.window_x, self.window_y))
         return self.display
 
@@ -51,6 +54,11 @@ class Game_Window():
                         j*self.square_size + self.fixed_x_value, i *
                         self.square_size + self.fixed_y_value, self.square_size, self.square_size
                     ])
+
+    def draw_score(self, score):
+        textsurface = self.myfont.render(
+            f'SCORE: {score}', False, (255, 255, 255))
+        self.display.blit(textsurface, (10, 10))
 
 
 class Piece():
