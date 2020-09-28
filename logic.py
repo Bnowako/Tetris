@@ -27,7 +27,7 @@ class GameLogic():
                            self.piece_position_y, self.display)
 
         self.pieces = ["I", "O", "J", "L", "Z", "S", "T"]
-        # self.pieces = ["I"]
+        # self.pieces = ["I", "Z"]
 
         self.grid_column = ((self.piece_position_x -
                              ((self.window_x - self.game_board_width * self.square_size)//2))//self.square_size)
@@ -46,7 +46,7 @@ class GameLogic():
         if self.new_piece_needed:
             self.add_new_piece()
 
-        self.track_grid_collisions()
+        self.track_piece_collisions()
 
         self.piece.draw(1, self.piece_position_x, self.piece_position_y)
         self.piece_position_y += self.square_size
@@ -54,7 +54,7 @@ class GameLogic():
     def get_random_piece(self):
         return random.choice(self.pieces)
 
-    def track_grid_collisions(self):
+    def track_piece_collisions(self):
         self.update_grid_column_and_row()
         piece_height = len(self.piece.shape)
 
@@ -97,25 +97,43 @@ class GameLogic():
         if key == left_arrow:
             if self.validate_movemenet("left"):
                 self.piece_position_x -= self.square_size
+                # self.track_piece_collisions()
                 self.update_grid_column_and_row()
         elif key == right_arrow:
             if self.validate_movemenet("right"):
                 self.piece_position_x += self.square_size
+                # self.track_piece_collisions()
                 self.update_grid_column_and_row()
 
     def validate_movemenet(self, direction):
         piece_width = len(self.piece.shape[0])
-
+        # valid = self.validate_movement_helper(direction)
         if direction == "right":
-            if self.grid_column + piece_width == self.game_board_width:
+            if (self.grid_column + piece_width == self.game_board_width) or (not self.validate_movement_helper(direction)):
+
                 return False
             else:
                 return True
         elif direction == "left":
-            if self.grid_column == 0:
+            if self.grid_column == 0 or not self.validate_movement_helper(direction):
                 return False
             else:
                 return True
+
+    def validate_movement_helper(self, direction):
+        column_to_check = 0
+        grid_column_to_check = -1
+        if direction == "right":
+            grid_column_to_check = len(self.piece.shape[0])
+            column_to_check = grid_column_to_check - 1
+
+        for i, row in enumerate(self.piece.shape):
+            for j, square in enumerate(row):
+                if square and j == column_to_check:
+                    if self.grid[self.grid_row + i][self.grid_column+grid_column_to_check]:
+                        print("FALSE")
+                        return False
+        return True
 
     def update_grid_column_and_row(self):
         self.grid_column = ((self.piece_position_x -
@@ -124,14 +142,29 @@ class GameLogic():
                           ((self.window_y - self.game_board_height*self.square_size)//2))//self.square_size)
 
     def rotate_piece(self):
+        rotated_shape = self.transverse_list(self.piece.shape)
+
+        if len(self.piece.shape) + self.grid_column < self.game_board_width and self.validate_rotation_collisions(rotated_shape):
+            self.piece.shape = rotated_shape
+
+    def validate_rotation_collisions(self, rotated_shape):
+
+        for i, row in enumerate(rotated_shape):
+            for j, square in enumerate(row):
+                if square:
+                    if self.grid[self.grid_row+i][self.grid_column+j]:
+                        return False
+        return True
+
+    def transverse_list(self, list):
         temp_list = [[0 for i in range(len(self.piece.shape))]
                      for i in range(len(self.piece.shape[0]))]
 
         for i, row in enumerate(self.piece.shape):
             for j, square in enumerate(row):
                 temp_list[j][-1*(i+1)] = square
-
-        self.piece.shape = temp_list
+        transversed_list = temp_list
+        return transversed_list
 
     def check_if_scored(self):
         scored_points = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -142,3 +175,8 @@ class GameLogic():
                 self.grid[i] = blank.copy()
                 points += 1
         self.points += points
+
+    def restart_game(self):
+        self.grid = [[0 for i in range(10)]for i in range(20)]
+        self.new_piece_needed = True
+        self.points = 0
