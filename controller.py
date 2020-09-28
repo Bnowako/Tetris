@@ -28,6 +28,9 @@ def main():
                     game_logic.handle_movement(event)
                 elif event.key == pygame.K_UP:
                     game_logic.rotate_piece()
+                elif event.key == pygame.K_ESCAPE:
+                    game_on = False
+                    game_logic.restart_game()
 
         if game_on == True:
             game_logic.handle_game(game_window)

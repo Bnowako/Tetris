@@ -19,8 +19,6 @@ class Config():
             'square_size': 20,
             'game_board_width': 10,
             'game_board_height': 20
-
-
         }
 
 
