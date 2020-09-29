@@ -187,13 +187,19 @@ class GameLogic():
 
     def check_if_scored(self):
         scored_points = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        blank = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         points = 0
         for i, row in enumerate(self.grid):
             if row == scored_points:
-                self.grid[i] = blank.copy()
+                # self.grid[i] = blank.copy()
+                self.move_rows_after_score(i)
                 points += 1
         self.points += points
+
+    def move_rows_after_score(self, scored_row_index):
+        blank = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+        self.grid.pop(scored_row_index)
+        self.grid.insert(0, blank.copy())
 
     def restart_game(self):
         self.grid = [[0 for i in range(10)]for i in range(20)]
