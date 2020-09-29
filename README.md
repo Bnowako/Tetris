@@ -1,11 +1,11 @@
 # TETRIS
 
-## Manual
+### Manual
 
-In terminal
+To start program:
 python3 contorller.py
 
-# Controls
+### Controls
 
 Game stop/start - space
 Game restart - escape
