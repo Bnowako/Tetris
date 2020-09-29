@@ -1,6 +1,6 @@
 import pygame
 from logic import GameLogic
-from main import Game_Window, Piece
+from gui import Game_Window, Piece
 
 
 def main():
@@ -35,7 +35,7 @@ def main():
         if game_on == True:
             game_logic.handle_game(game_window)
 
-        clock.tick(10)
+        clock.tick(game_logic.game_speed)
 
 
 main()
