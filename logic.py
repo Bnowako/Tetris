@@ -1,5 +1,5 @@
 from config import Config
-from main import Piece
+from gui import Piece
 import random
 
 
@@ -35,21 +35,39 @@ class GameLogic():
                           ((self.window_y - self.game_board_height*self.square_size)//2))//self.square_size)
         self.points = 0
         self.pieces_fallen = 0
+        self.first_iteration = 0
+
+        self.game_speed = 3
 
     def handle_game(self, game_window):
-
         game_window.display.fill((0, 0, 0))
         game_window.create_game_board()
         game_window.draw_grid()
         game_window.draw_fallen_pieces(self.grid, 1)
         game_window.draw_score(self.points)
+
         if self.new_piece_needed:
             self.add_new_piece()
-
-        self.track_piece_collisions()
-
+            self.first_iteration = 0
+        if not self.track_piece_collisions():
+            if self.first_iteration:
+                self.piece_position_y += self.square_size
         self.piece.draw(1, self.piece_position_x, self.piece_position_y)
-        self.piece_position_y += self.square_size
+        self.first_iteration += 1
+
+        self.check_for_game_over()
+
+    def check_for_game_over(self):
+        for square in self.grid[0]:
+            if square == 1:
+                self.restart_game()
+
+    def handle_game_speed(self):
+        print(self.pieces_fallen)
+        if self.game_speed == 20:
+            return 0
+        elif self.pieces_fallen % 5 == 0:
+            self.game_speed += 1
 
     def get_random_piece(self):
         return random.choice(self.pieces)
@@ -60,12 +78,15 @@ class GameLogic():
 
         if self.grid_row + piece_height == self.game_board_height:
             self.stop_current_piece(self.grid_row, self.grid_column)
+            return True
         else:
             for i, row in enumerate(self.piece.shape):
                 for j, square in enumerate(row):
                     if self.grid[self.grid_row+(i+1)][self.grid_column+j] and square:
                         self.stop_current_piece(
                             self.grid_row, self.grid_column)
+                        return True
+        return False
 
     def add_new_piece(self):
         self.piece_position_x = (self.window_x // 2) - self.square_size
@@ -85,8 +106,7 @@ class GameLogic():
         self.new_piece_needed = True
         self.check_if_scored()
         self.pieces_fallen += 1
-
-        # print(self.grid)
+        self.handle_game_speed()
 
     def handle_movement(self, event):
         right_arrow = 275
@@ -97,15 +117,13 @@ class GameLogic():
         if key == left_arrow:
             if self.validate_movemenet("left"):
                 self.piece_position_x -= self.square_size
-                # self.track_piece_collisions()
-                self.update_grid_column_and_row()
+
         elif key == right_arrow:
             if self.validate_movemenet("right"):
                 self.piece_position_x += self.square_size
-                # self.track_piece_collisions()
-                self.update_grid_column_and_row()
 
     def validate_movemenet(self, direction):
+        self.update_grid_column_and_row()
         piece_width = len(self.piece.shape[0])
         # valid = self.validate_movement_helper(direction)
         if direction == "right":
@@ -142,13 +160,14 @@ class GameLogic():
                           ((self.window_y - self.game_board_height*self.square_size)//2))//self.square_size)
 
     def rotate_piece(self):
+        self.update_grid_column_and_row()
+
         rotated_shape = self.transverse_list(self.piece.shape)
 
-        if len(self.piece.shape) + self.grid_column < self.game_board_width and self.validate_rotation_collisions(rotated_shape):
+        if len(self.piece.shape) + self.grid_column < self.game_board_width and len(self.piece.shape[0]) + self.grid_row < self.game_board_height and self.validate_rotation_collisions(rotated_shape):
             self.piece.shape = rotated_shape
 
     def validate_rotation_collisions(self, rotated_shape):
-
         for i, row in enumerate(rotated_shape):
             for j, square in enumerate(row):
                 if square:
