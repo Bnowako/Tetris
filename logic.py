@@ -1,10 +1,12 @@
 from config import Config
-from gui import Piece
+import gui
 import random
+import typing
+import pygame
 
 
 class GameLogic():
-    def __init__(self, display):
+    def __init__(self, display: pygame.Surface):
         self.grid = [[0 for i in range(10)]for i in range(20)]
         self.grid_color = [[0 for i in range(10)]for i in range(20)]
         self.new_piece_needed = True
@@ -23,8 +25,8 @@ class GameLogic():
         self.piece_position_y = (
             self.window_y - (self.game_board_height*self.square_size))//2
 
-        self.piece = Piece("I", False, self.piece_position_x,
-                           self.piece_position_y, self.display)
+        self.piece = gui.Piece("I", self.piece_position_x,
+                               self.piece_position_y, self.display)
 
         self.pieces = ["I", "O", "J", "L", "Z", "S", "T"]
         # self.pieces = ["I", "Z"]
@@ -40,51 +42,76 @@ class GameLogic():
         self.game_speed = 500
         self.time_elapsed = 0
 
-    def handle_game(self, game_window, time_elapsed):
+    def handle_game(self, game_window: gui.GameWindow, time_elapsed: int):
+        # update elapsed time
         self.time_elapsed += time_elapsed
+        # draw grid,score,fallen pieces
+        self.draw_game_setup(game_window)
+        # if new_piece_needed add new piece and set self.first_iteration to 0
+        if self.new_piece_needed:
+            self.add_new_piece()
+            self.first_iteration = 0
+        # handle_game function is triggered many times per second
+        # game_speed is slower than frequency of pygame clock tick
+        # game_speed is time interval in wich piece will be falling
+        # so if self.time_elapsed is greater than self.game_speed
+        # move piece one unit down
+        if self.time_elapsed > self.game_speed:
+            if not self.track_piece_collisions() and self.first_iteration:
+                self.piece_position_y += self.square_size
+            # reset time_elapsed so we can measure each interval
+            self.time_elapsed = 0
+        # draw piece each time handle_game is triggerd
+        # this allows to move piece independently from game_speed
+        self.piece.draw(self.piece_position_x, self.piece_position_y)
+
+        # this variable allows piece to appear on the top and fall after interval
+        # without it piece will fall immediately
+        self.first_iteration += 1
+
+        # each iteration check if game is over
+        self.check_for_game_over()
+
+    def draw_game_setup(self, game_window: gui.GameWindow):
+        # draw all background elements needed and all fallen pieces
+
         game_window.display.fill((0, 0, 0))
         game_window.create_game_board()
         game_window.draw_grid()
         game_window.draw_fallen_pieces(self.grid, self.grid_color)
         game_window.draw_score(self.points)
 
-        if self.new_piece_needed:
-            self.add_new_piece()
-            self.first_iteration = 0
-        if self.time_elapsed > self.game_speed:
-            if not self.track_piece_collisions() and self.first_iteration:
-                self.piece_position_y += self.square_size
-            self.time_elapsed = 0
-
-        self.piece.draw(1, self.piece_position_x, self.piece_position_y)
-
-        self.first_iteration += 1
-
-        self.check_for_game_over()
-
     def check_for_game_over(self):
+        # if any of top squares are occupied restart game
+        # it differs from original game but it doesnt make crucial difference for gameplay
         for square in self.grid[0]:
             if square == 1:
                 self.restart_game()
 
     def handle_game_speed(self):
-        # print(self.pieces_fallen)
-        if self.game_speed == 100:
+        # increase speed by 50 ms after each 10 fallen pieces
+        # if speed reaches 50ms that is 2s per piece to fall down - stop increasing speed
+        if self.game_speed == 50:
             return 0
         elif self.pieces_fallen % 10 == 0:
             self.game_speed -= 50
 
-    def get_random_piece(self):
+    def get_random_piece(self) -> str:
+        # return random piece name
         return random.choice(self.pieces)
 
-    def track_piece_collisions(self):
+    def track_piece_collisions(self) -> bool:
+        # tracking if fallen pieces or pieces that stack on top of another piece
+
         self.update_grid_column_and_row()
         piece_height = len(self.piece.shape)
 
+        # if piece fall down - stop it
         if self.grid_row + piece_height == self.game_board_height:
             self.stop_current_piece(self.grid_row, self.grid_column)
             return True
         else:
+            # if piece will fall on top of another piece - stop it
             for i, row in enumerate(self.piece.shape):
                 for j, square in enumerate(row):
                     if self.grid[self.grid_row+(i+1)][self.grid_column+j] and square:
@@ -94,16 +121,24 @@ class GameLogic():
         return False
 
     def add_new_piece(self):
+        # reseting position of piece
         self.piece_position_x = (self.window_x // 2) - self.square_size
         self.piece_position_y = (
             self.window_y - (self.game_board_height*self.square_size))//2
-
+        # get new random piece name
         self.current_piece_name = self.get_random_piece()
-        self.piece = Piece(self.cfg[self.current_piece_name], False, self.piece_position_x,
-                           self.piece_position_y, self.display)
+        # make new piece object from Piece class
+        self.piece = gui.Piece(self.cfg[self.current_piece_name], self.piece_position_x,
+                               self.piece_position_y, self.display)
+        # change new_piece_needed to false - we have new piece
         self.new_piece_needed = False
 
-    def stop_current_piece(self, grid_row, grid_column):
+    def stop_current_piece(self, grid_row: int, grid_column: int):
+        # if any of the collisions occur:
+        # - stop current piece
+        # - add it to grid that will be drawn
+        # - add its color to list
+
         for i, row in enumerate(self.piece.shape):
             for j, square in enumerate(row):
                 if square:
@@ -111,32 +146,47 @@ class GameLogic():
                     self.grid_color[grid_row +
                                     i][grid_column+j] = self.piece.color
         self.new_piece_needed = True
-
+        # after each fall of the piece check if any of the rows was scored
         self.check_if_scored()
+        # update pieces_fallen counter
         self.pieces_fallen += 1
+        # check if game_speed needs to be increased
         self.handle_game_speed()
 
-    def handle_movement(self, event):
+    def handle_movement(self, event: pygame.event):
+        # handler for:
+        # - movement left,right,down
+        # - rotation
         right_arrow = 275
         left_arrow = 276
         down_arrow = 274
+        up_arrow = 273
+        # get key value from event object
         key = event.__dict__['key']
+        # distinguish each event
         if not self.new_piece_needed:
             if key == left_arrow:
                 if self.validate_movemenet("left"):
+                    # if movement is possible move piece 1 unit to the left
                     self.piece_position_x -= self.square_size
             elif key == right_arrow:
                 if self.validate_movemenet("right"):
+                    # if movement is possible move piece 1 unit to the right
                     self.piece_position_x += self.square_size
             elif key == down_arrow:
                 if self.validate_movemenet("down"):
+                    # if movement is possible move piece 1 unit down
                     self.piece_position_y += self.square_size
+            elif key == up_arrow:
+                # rotate piece validation inside function
+                self.rotate_piece()
 
-    def validate_movemenet(self, direction):
+    def validate_movemenet(self, direction: str) -> bool:
+        # validate movment left,right,down
         self.update_grid_column_and_row()
         piece_width = len(self.piece.shape[0])
         piece_height = len(self.piece.shape)
-        # valid = self.validate_movement_helper(direction)
+
         if direction == "right":
             if (self.grid_column + piece_width == self.game_board_width) or (not self.validate_movement_helper(direction)):
                 return False
@@ -153,13 +203,17 @@ class GameLogic():
             else:
                 return True
 
-    def validate_movement_helper(self, direction):
+    def validate_movement_helper(self, direction: str) -> bool:
+        # validate movment left,right,down
+        # iterate through piece shape list and:
+        # - if square under piece square is unavailable return False
+        # - if square under piece square is available return True
+
         if direction == "right" or direction == "left":
 
             grid_column_to_check = 1 if direction == "right" else -1
             for i, row in enumerate(self.piece.shape):
                 for j, square in enumerate(row):
-                    # if square and j == column_to_check:
                     if square and self.grid[self.grid_row + i][self.grid_column+grid_column_to_check + j]:
                         print(
                             "FALSE", i, j, self.grid[self.grid_row + i][self.grid_column+grid_column_to_check])
@@ -176,20 +230,25 @@ class GameLogic():
             return True
 
     def update_grid_column_and_row(self):
+        # update piece position
         self.grid_column = ((self.piece_position_x -
                              ((self.window_x - self.game_board_width * self.square_size)//2))//self.square_size)
         self.grid_row = ((self.piece_position_y -
                           ((self.window_y - self.game_board_height*self.square_size)//2))//self.square_size)
 
     def rotate_piece(self):
+        # due to piece_shape format - list with 1 representing piece suqres
+        # piece rotation is implemented by transversing list
+
         self.update_grid_column_and_row()
 
         rotated_shape = self.transverse_list(self.piece.shape)
-
-        if len(self.piece.shape) + self.grid_column - 1 < self.game_board_width and len(self.piece.shape[0]) + self.grid_row - 1 < self.game_board_height and self.validate_rotation_collisions(rotated_shape):
+        # validate rotation
+        if len(self.piece.shape) + self.grid_column - 1 < self.game_board_width and len(self.piece.shape[0]) + self.grid_row - 1 < self.game_board_height and self.validate_rotation(rotated_shape):
             self.piece.shape = rotated_shape
 
-    def validate_rotation_collisions(self, rotated_shape):
+    def validate_rotation(self, rotated_shape: list) -> bool:
+        # iterate through rotated shape and check if it will collide with any fallen pieces
         for i, row in enumerate(rotated_shape):
             for j, square in enumerate(row):
                 if square:
@@ -197,7 +256,7 @@ class GameLogic():
                         return False
         return True
 
-    def transverse_list(self, list):
+    def transverse_list(self, list: list) -> list:
         temp_list = [[0 for i in range(len(self.piece.shape))]
                      for i in range(len(self.piece.shape[0]))]
 
@@ -208,16 +267,19 @@ class GameLogic():
         return transversed_list
 
     def check_if_scored(self):
+        # check if any of the rows are scored
+        # if True move rows after score and add points
         scored_points = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         points = 0
         for i, row in enumerate(self.grid):
             if row == scored_points:
-                # self.grid[i] = blank.copy()
                 self.move_rows_after_score(i)
                 points += 1
         self.points += points
 
-    def move_rows_after_score(self, scored_row_index):
+    def move_rows_after_score(self, scored_row_index: int):
+        # in tetris after score all rows fall 1 row
+
         blank = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         self.grid.pop(scored_row_index)
@@ -226,6 +288,7 @@ class GameLogic():
         self.grid_color.insert(0, blank.copy())
 
     def restart_game(self):
+        # if game over or if escape pressed
         self.grid = [[0 for i in range(10)]for i in range(20)]
         self.new_piece_needed = True
         self.points = 0
