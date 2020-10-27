@@ -12,7 +12,7 @@ def main():
     game_window.draw_grid()
 
     clock = pygame.time.Clock()
-
+    time_elapsed = 0
     run = True
     game_on = False
     while run:
@@ -31,11 +31,13 @@ def main():
                 elif event.key == pygame.K_ESCAPE:
                     game_on = False
                     game_logic.restart_game()
-
+                elif event.key == pygame.K_DOWN:
+                    game_logic.handle_movement(event)
+        time_elapsed += clock.get_rawtime()
         if game_on == True:
-            game_logic.handle_game(game_window)
-
-        clock.tick(game_logic.game_speed)
+            game_logic.handle_game(game_window, time_elapsed)
+        time_elapsed = 0
+        clock.tick()
 
 
 main()
