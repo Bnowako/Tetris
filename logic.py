@@ -29,7 +29,6 @@ class GameLogic():
                                self.piece_position_y, self.display)
 
         self.pieces = ["I", "O", "J", "L", "Z", "S", "T"]
-        # self.pieces = ["I", "Z"]
 
         self.grid_column = ((self.piece_position_x -
                              ((self.window_x - self.game_board_width * self.square_size)//2))//self.square_size)
@@ -45,13 +44,13 @@ class GameLogic():
     def handle_game(self, game_window: gui.GameWindow, time_elapsed: int):
         # update elapsed time
         self.time_elapsed += time_elapsed
-        # draw grid,score,fallen pieces
+        # draw grid,scoreboard,fallen pieces
         self.draw_game_setup(game_window)
         # if new_piece_needed add new piece and set self.first_iteration to 0
         if self.new_piece_needed:
             self.add_new_piece()
             self.first_iteration = 0
-        # handle_game function is triggered many times per second
+        # handle_game function is triggered every pygame clock tick
         # game_speed is slower than frequency of pygame clock tick
         # game_speed is time interval in wich piece will be falling
         # so if self.time_elapsed is greater than self.game_speed
@@ -66,7 +65,7 @@ class GameLogic():
         self.piece.draw(self.piece_position_x, self.piece_position_y)
 
         # this variable allows piece to appear on the top and fall after interval
-        # without it piece will fall immediately
+        # without it piece will fall immediately one unit
         self.first_iteration += 1
 
         # each iteration check if game is over
@@ -130,7 +129,7 @@ class GameLogic():
         # make new piece object from Piece class
         self.piece = gui.Piece(self.cfg[self.current_piece_name], self.piece_position_x,
                                self.piece_position_y, self.display)
-        # change new_piece_needed to false - we have new piece
+        # change new_piece_needed to false - we already made new piece
         self.new_piece_needed = False
 
     def stop_current_piece(self, grid_row: int, grid_column: int):
@@ -206,8 +205,8 @@ class GameLogic():
     def validate_movement_helper(self, direction: str) -> bool:
         # validate movment left,right,down
         # iterate through piece shape list and:
-        # - if square under piece square is unavailable return False
-        # - if square under piece square is available return True
+        # - if square under any piece square is unavailable return False
+        # - if square under every piece square is available return True
 
         if direction == "right" or direction == "left":
 
@@ -230,14 +229,14 @@ class GameLogic():
             return True
 
     def update_grid_column_and_row(self):
-        # update piece position
+        # update piece position variables
         self.grid_column = ((self.piece_position_x -
                              ((self.window_x - self.game_board_width * self.square_size)//2))//self.square_size)
         self.grid_row = ((self.piece_position_y -
                           ((self.window_y - self.game_board_height*self.square_size)//2))//self.square_size)
 
     def rotate_piece(self):
-        # due to piece_shape format - list with 1 representing piece suqres
+        # due to piece_shape format - list with 1 representing piece suqares
         # piece rotation is implemented by transversing list
 
         self.update_grid_column_and_row()
@@ -279,9 +278,7 @@ class GameLogic():
 
     def move_rows_after_score(self, scored_row_index: int):
         # in tetris after score all rows fall 1 row
-
         blank = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-
         self.grid.pop(scored_row_index)
         self.grid.insert(0, blank.copy())
         self.grid_color.pop(scored_row_index)

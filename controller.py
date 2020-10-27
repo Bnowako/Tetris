@@ -4,7 +4,7 @@ from gui import GameWindow, Piece
 
 
 def main():
-    # create game_window object from GameWindow() class form gui.py
+    # create game_window object from GameWindow() class from gui.py
     game_window = GameWindow()
 
     # get Surface object and initialize pygame
@@ -31,7 +31,7 @@ def main():
 
     while run:
         for event in pygame.event.get():
-            # if user click on quit button it quits the program
+            # if user click quit button it quits the program
             if event.type == pygame.QUIT:
                 run = False
             # handling all events for controling the game
@@ -54,7 +54,8 @@ def main():
         # if game is on call handle_game
         if game_on == True:
             game_logic.handle_game(game_window, time_elapsed)
-        # set elapsed time to 0 to get elapsed time of each iteration
+        # set elapsed time to 0
+        # this allows to get elapsed time of each iteration
         time_elapsed = 0
         clock.tick()
 
