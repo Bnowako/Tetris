@@ -46,7 +46,6 @@ class Game_Window():
         pygame.display.update()
 
     def draw_fallen_pieces(self, grid, grid_color):
-
         for i, row in enumerate(grid):
             for j, square in enumerate(row):
                 if square:

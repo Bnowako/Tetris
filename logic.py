@@ -37,7 +37,7 @@ class GameLogic():
         self.pieces_fallen = 0
         self.first_iteration = 0
 
-        self.game_speed = 1000
+        self.game_speed = 500
         self.time_elapsed = 0
 
     def handle_game(self, game_window, time_elapsed):
@@ -48,16 +48,16 @@ class GameLogic():
         game_window.draw_fallen_pieces(self.grid, self.grid_color)
         game_window.draw_score(self.points)
 
+        if self.new_piece_needed:
+            self.add_new_piece()
+            self.first_iteration = 0
         if self.time_elapsed > self.game_speed:
-            if self.new_piece_needed:
-                self.add_new_piece()
-                self.first_iteration = 0
-            if not self.track_piece_collisions():
-                if self.first_iteration:
-                    self.piece_position_y += self.square_size
+            if not self.track_piece_collisions() and self.first_iteration:
+                self.piece_position_y += self.square_size
             self.time_elapsed = 0
 
         self.piece.draw(1, self.piece_position_x, self.piece_position_y)
+
         self.first_iteration += 1
 
         self.check_for_game_over()
@@ -111,6 +111,7 @@ class GameLogic():
                     self.grid_color[grid_row +
                                     i][grid_column+j] = self.piece.color
         self.new_piece_needed = True
+
         self.check_if_scored()
         self.pieces_fallen += 1
         self.handle_game_speed()
@@ -167,10 +168,10 @@ class GameLogic():
         if direction == "down":
             if self.grid_row + len(self.piece.shape) == self.game_board_height:
                 return False
-            for i, square in enumerate(self.piece.shape[-1]):
-                if square and self.grid[int(self.grid_row)+len(self.piece.shape)][self.grid_column + i]:
-
-                    return False
+            for i, row in enumerate(self.piece.shape):
+                for j, square in enumerate(row):
+                    if square and self.grid[self.grid_row+i+1][self.grid_column + j]:
+                        return False
 
             return True
 
@@ -185,7 +186,7 @@ class GameLogic():
 
         rotated_shape = self.transverse_list(self.piece.shape)
 
-        if len(self.piece.shape) + self.grid_column < self.game_board_width and len(self.piece.shape[0]) + self.grid_row < self.game_board_height and self.validate_rotation_collisions(rotated_shape):
+        if len(self.piece.shape) + self.grid_column - 1 < self.game_board_width and len(self.piece.shape[0]) + self.grid_row - 1 < self.game_board_height and self.validate_rotation_collisions(rotated_shape):
             self.piece.shape = rotated_shape
 
     def validate_rotation_collisions(self, rotated_shape):
