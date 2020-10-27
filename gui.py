@@ -1,8 +1,9 @@
 import pygame
 from config import Config
+import typing
 
 
-class Game_Window():
+class GameWindow():
     def __init__(self):
         self.cfg = Config().get_config()
         self.window_x = self.cfg['window_x']
@@ -20,7 +21,9 @@ class Game_Window():
         self.red = (255, 0, 0)
         self.blue = (0, 0, 255)
 
-    def initialize(self):
+    def initialize(self) -> pygame.Surface:
+        # initialize pygame, font, display
+        # return Surface on which all elements will be drawn
         pygame.init()
         pygame.font.init()
         self.myfont = pygame.font.SysFont('Comic Sans MS', 30)
@@ -29,14 +32,13 @@ class Game_Window():
         return self.display
 
     def create_game_board(self):
-
+        # draw boundaries for grid
         pygame.draw.lines(self.display, self.red, True,
                           [(self.fixed_x_value, self.fixed_y_value), (self.fixed_x_value+self.square_size*self.game_board_width, self.fixed_y_value), (self.fixed_x_value+self.square_size*self.game_board_width, self.fixed_y_value+self.square_size*self.game_board_height), (self.fixed_x_value, self.fixed_y_value+self.square_size*self.game_board_height)])
 
         pygame.display.update()
 
     def draw_grid(self):
-
         for i in range(self.game_board_width-1):
             pygame.draw.line(self.display, self.blue,
                              (self.fixed_x_value+self.square_size*(i+1), self.fixed_y_value), (self.fixed_x_value+self.square_size*(i+1), self.fixed_y_value+self.square_size*self.game_board_height))
@@ -45,7 +47,8 @@ class Game_Window():
                              (self.fixed_x_value, self.fixed_y_value+self.square_size*(i+1)), (self.fixed_x_value+self.square_size*self.game_board_width, self.fixed_y_value+self.square_size*(i+1)))
         pygame.display.update()
 
-    def draw_fallen_pieces(self, grid, grid_color):
+    def draw_fallen_pieces(self, grid: list, grid_color: list):
+        # iterate through grid and list and draw fallen pieces
         for i, row in enumerate(grid):
             for j, square in enumerate(row):
                 if square:
@@ -54,17 +57,16 @@ class Game_Window():
                         self.square_size + self.fixed_y_value, self.square_size, self.square_size
                     ])
 
-    def draw_score(self, score):
+    def draw_score(self, score: int):
         textsurface = self.myfont.render(
             f'SCORE: {score}', False, (255, 255, 255))
         self.display.blit(textsurface, (10, 10))
 
 
 class Piece():
-    def __init__(self, shape, rotation, position_x, position_y, display):
+    def __init__(self, shape: list,  position_x: int, position_y: int, display: pygame.Surface):
         self.cfg = Config().get_config()
         self.shape = shape
-        self.rotation = rotation
         self.position_x = position_x
         self.position_y = position_y
         self.display = display
@@ -72,13 +74,8 @@ class Piece():
         self.color = (255, 0, 0)
         self.assign_piece_color()
 
-    def draw(self, rotation, position_x, position_y):
-        # print(self.shape)
-        # print(position_x, position_y)
-        if self.rotation:
-            print("ROTATE")
-            self.rotation = False
-
+    def draw(self, position_x: int, position_y: int):
+        # draw piece in specified position
         for i, row in enumerate(self.shape):
             for j, square in enumerate(row):
                 if square == 1:
