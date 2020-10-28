@@ -1,19 +1,18 @@
 import pygame
-from config import Config
+from config import config
 import typing
 
 
 class GameWindow():
     def __init__(self):
-        self.cfg = Config().get_config()
-        self.window_x = self.cfg['window_x']
-        self.window_y = self.cfg['window_y']
-        self.square_size = self.cfg['square_size']
-        self.game_board_width = self.cfg['game_board_width']
-        self.game_board_height = self.cfg['game_board_height']
-        self.fixed_x_value = (
+        self.window_x = config['window_x']
+        self.window_y = config['window_y']
+        self.square_size = config['square_size']
+        self.game_board_width = config['game_board_width']
+        self.game_board_height = config['game_board_height']
+        self.upper_left_board_corner_x = (
             self.window_x - (self.square_size*self.game_board_width))/2
-        self.fixed_y_value = (
+        self.upper_left_board_corner_y = (
             self.window_y - (self.square_size*self.game_board_height))/2
 
         self.display = 0
@@ -33,18 +32,30 @@ class GameWindow():
 
     def create_game_board(self):
         # draw boundaries for grid
-        pygame.draw.lines(self.display, self.red, True,
-                          [(self.fixed_x_value, self.fixed_y_value), (self.fixed_x_value+self.square_size*self.game_board_width, self.fixed_y_value), (self.fixed_x_value+self.square_size*self.game_board_width, self.fixed_y_value+self.square_size*self.game_board_height), (self.fixed_x_value, self.fixed_y_value+self.square_size*self.game_board_height)])
+
+        upper_left_corner = (self.upper_left_board_corner_x,
+                             self.upper_left_board_corner_y)
+        upper_right_corner = (
+            self.upper_left_board_corner_x+self.square_size*self.game_board_width, self.upper_left_board_corner_y)
+        bottom_right_corner = (self.upper_left_board_corner_x+self.square_size*self.game_board_width,
+                               self.upper_left_board_corner_y+self.square_size*self.game_board_height)
+        bottom_left_corner = (
+            self.upper_left_board_corner_x, self.upper_left_board_corner_y+self.square_size*self.game_board_height)
+
+        board_coordinates = [
+            upper_left_corner, upper_right_corner, bottom_right_corner, bottom_left_corner]
+
+        pygame.draw.lines(self.display, self.red, True, board_coordinates)
 
         pygame.display.update()
 
     def draw_grid(self):
         for i in range(self.game_board_width-1):
             pygame.draw.line(self.display, self.blue,
-                             (self.fixed_x_value+self.square_size*(i+1), self.fixed_y_value), (self.fixed_x_value+self.square_size*(i+1), self.fixed_y_value+self.square_size*self.game_board_height))
+                             (self.upper_left_board_corner_x+self.square_size*(i+1), self.upper_left_board_corner_y), (self.upper_left_board_corner_x+self.square_size*(i+1), self.upper_left_board_corner_y+self.square_size*self.game_board_height))
         for i in range(self.game_board_height-1):
             pygame.draw.line(self.display, self.blue,
-                             (self.fixed_x_value, self.fixed_y_value+self.square_size*(i+1)), (self.fixed_x_value+self.square_size*self.game_board_width, self.fixed_y_value+self.square_size*(i+1)))
+                             (self.upper_left_board_corner_x, self.upper_left_board_corner_y+self.square_size*(i+1)), (self.upper_left_board_corner_x+self.square_size*self.game_board_width, self.upper_left_board_corner_y+self.square_size*(i+1)))
         pygame.display.update()
 
     def draw_fallen_pieces(self, grid: list, grid_color: list):
@@ -53,8 +64,8 @@ class GameWindow():
             for j, square in enumerate(row):
                 if square:
                     pygame.draw.rect(self.display, grid_color[i][j], [
-                        j*self.square_size + self.fixed_x_value, i *
-                        self.square_size + self.fixed_y_value, self.square_size, self.square_size
+                        j*self.square_size + self.upper_left_board_corner_x, i *
+                        self.square_size + self.upper_left_board_corner_y, self.square_size, self.square_size
                     ])
 
     def draw_score(self, score: int):
@@ -64,15 +75,13 @@ class GameWindow():
 
 
 class Piece():
-    def __init__(self, shape: list,  position_x: int, position_y: int, display: pygame.Surface):
-        self.cfg = Config().get_config()
-        self.shape = shape
+    def __init__(self, shape: str,  position_x: int, position_y: int, display: pygame.Surface):
+        self.shape = config[shape]
         self.position_x = position_x
         self.position_y = position_y
         self.display = display
-        self.square_size = self.cfg['square_size']
-        self.color = (255, 0, 0)
-        self.assign_piece_color()
+        self.square_size = config['square_size']
+        self.color = config[f'{shape}_color']
 
     def draw(self, position_x: int, position_y: int):
         # draw piece in specified position
@@ -84,19 +93,3 @@ class Piece():
                                       self.square_size, self.square_size]
                                      )
         pygame.display.update()
-
-    def assign_piece_color(self):
-        if self.shape == self.cfg['T']:
-            self.color = (255, 0, 255)
-        elif self.shape == self.cfg['I']:
-            self.color = (0, 191, 255)
-        elif self.shape == self.cfg['O']:
-            self.color = (255, 255, 0)
-        elif self.shape == self.cfg['J']:
-            self.color = (0, 0, 255)
-        elif self.shape == self.cfg['L']:
-            self.color = (255, 165, 0)
-        elif self.shape == self.cfg['S']:
-            self.color = (0, 255, 0)
-        elif self.shape == self.cfg['Z']:
-            self.color = (255, 0, 0)

@@ -1,4 +1,4 @@
-from config import Config
+from config import config
 import gui
 import random
 import typing
@@ -10,14 +10,13 @@ class GameLogic():
         self.grid = [[0 for i in range(10)]for i in range(20)]
         self.grid_color = [[0 for i in range(10)]for i in range(20)]
         self.new_piece_needed = True
-        self.cfg = Config().get_config()
 
-        self.square_size = self.cfg['square_size']
+        self.square_size = config['square_size']
 
-        self.window_x = self.cfg['window_x']
-        self.window_y = self.cfg['window_y']
-        self.game_board_width = self.cfg['game_board_width']
-        self.game_board_height = self.cfg['game_board_height']
+        self.window_x = config['window_x']
+        self.window_y = config['window_y']
+        self.game_board_width = config['game_board_width']
+        self.game_board_height = config['game_board_height']
 
         self.display = display
         self.current_piece_name = "I"
@@ -127,7 +126,7 @@ class GameLogic():
         # get new random piece name
         self.current_piece_name = self.get_random_piece()
         # make new piece object from Piece class
-        self.piece = gui.Piece(self.cfg[self.current_piece_name], self.piece_position_x,
+        self.piece = gui.Piece(self.current_piece_name, self.piece_position_x,
                                self.piece_position_y, self.display)
         # change new_piece_needed to false - we already made new piece
         self.new_piece_needed = False
@@ -165,44 +164,44 @@ class GameLogic():
         # distinguish each event
         if not self.new_piece_needed:
             if key == left_arrow:
-                if self.validate_movemenet("left"):
+                if self.is_move_valid("left"):
                     # if movement is possible move piece 1 unit to the left
                     self.piece_position_x -= self.square_size
             elif key == right_arrow:
-                if self.validate_movemenet("right"):
+                if self.is_move_valid("right"):
                     # if movement is possible move piece 1 unit to the right
                     self.piece_position_x += self.square_size
             elif key == down_arrow:
-                if self.validate_movemenet("down"):
+                if self.is_move_valid("down"):
                     # if movement is possible move piece 1 unit down
                     self.piece_position_y += self.square_size
             elif key == up_arrow:
                 # rotate piece validation inside function
                 self.rotate_piece()
 
-    def validate_movemenet(self, direction: str) -> bool:
+    def is_move_valid(self, direction: str) -> bool:
         # validate movment left,right,down
         self.update_grid_column_and_row()
         piece_width = len(self.piece.shape[0])
         piece_height = len(self.piece.shape)
 
         if direction == "right":
-            if (self.grid_column + piece_width == self.game_board_width) or (not self.validate_movement_helper(direction)):
+            if (self.grid_column + piece_width == self.game_board_width) or (not self.is_move_valid_helper(direction)):
                 return False
             else:
                 return True
         elif direction == "left":
-            if self.grid_column == 0 or not self.validate_movement_helper(direction):
+            if self.grid_column == 0 or not self.is_move_valid_helper(direction):
                 return False
             else:
                 return True
         elif direction == "down":
-            if self.grid_row + piece_height == self.game_board_height or not (self.validate_movement_helper(direction)):
+            if self.grid_row + piece_height == self.game_board_height or not (self.is_move_valid_helper(direction)):
                 return False
             else:
                 return True
 
-    def validate_movement_helper(self, direction: str) -> bool:
+    def is_move_valid_helper(self, direction: str) -> bool:
         # validate movment left,right,down
         # iterate through piece shape list and:
         # - if square under any piece square is unavailable return False
@@ -214,8 +213,6 @@ class GameLogic():
             for i, row in enumerate(self.piece.shape):
                 for j, square in enumerate(row):
                     if square and self.grid[self.grid_row + i][self.grid_column+grid_column_to_check + j]:
-                        print(
-                            "FALSE", i, j, self.grid[self.grid_row + i][self.grid_column+grid_column_to_check])
                         return False
             return True
         if direction == "down":
@@ -243,16 +240,27 @@ class GameLogic():
 
         rotated_shape = self.transverse_list(self.piece.shape)
         # validate rotation
-        if len(self.piece.shape) + self.grid_column - 1 < self.game_board_width and len(self.piece.shape[0]) + self.grid_row - 1 < self.game_board_height and self.validate_rotation(rotated_shape):
+        if self.is_rotation_valid(rotated_shape):
             self.piece.shape = rotated_shape
 
-    def validate_rotation(self, rotated_shape: list) -> bool:
+    def is_rotation_valid(self, rotated_shape: list) -> bool:
+        # check if there is space for rotation on the board
+        enough_space_horizontal = len(
+            rotated_shape[0]) + self.grid_column - 1 < self.game_board_width
+        enough_space_vertical = len(
+            rotated_shape) + self.grid_row - 1 < self.game_board_height
+
+        if not enough_space_horizontal or not enough_space_vertical:
+            return False
+
         # iterate through rotated shape and check if it will collide with any fallen pieces
+
         for i, row in enumerate(rotated_shape):
             for j, square in enumerate(row):
                 if square:
-                    if self.grid[self.grid_row+i][self.grid_column+j]:
+                    if self.grid[self.grid_row + i][self.grid_column+j]:
                         return False
+
         return True
 
     def transverse_list(self, list: list) -> list:
