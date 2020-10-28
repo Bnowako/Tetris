@@ -35,20 +35,17 @@ def main():
             if event.type == pygame.QUIT:
                 run = False
             # handling all events for controling the game
+            movement_keys = [pygame.K_RIGHT,
+                             pygame.K_LEFT, pygame.K_UP, pygame.K_DOWN]
+
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     game_on = not game_on
-                elif event.key == pygame.K_RIGHT:
-                    game_logic.handle_movement(event)
-                elif event.key == pygame.K_LEFT:
-                    game_logic.handle_movement(event)
-                elif event.key == pygame.K_UP:
-                    game_logic.handle_movement(event)
                 elif event.key == pygame.K_ESCAPE:
-                    game_on = False
                     game_logic.restart_game()
-                elif event.key == pygame.K_DOWN:
+                elif event.key in movement_keys:
                     game_logic.handle_movement(event)
+
         # update elapsed time before calling handle_game func to pass it as an argument
         time_elapsed += clock.get_rawtime()
         # if game is on call handle_game
