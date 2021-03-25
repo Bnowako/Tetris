@@ -3,6 +3,8 @@
 ### Manual
 
 To start program:
+(venv recommended)
+pip3 install requirements.txt
 python3 contorller.py
 
 ### Controls
