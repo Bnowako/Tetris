@@ -37,7 +37,7 @@ class GameLogic():
         self.pieces_fallen = 0
         self.first_iteration = 0
 
-        self.game_speed = 500
+        self.game_speed = 500 
         self.time_elapsed = 0
 
     def handle_game(self, game_window: gui.GameWindow, time_elapsed: int):
@@ -155,27 +155,23 @@ class GameLogic():
         # handler for:
         # - movement left,right,down
         # - rotation
-        right_arrow = 275
-        left_arrow = 276
-        down_arrow = 274
-        up_arrow = 273
-        # get key value from event object
-        key = event.__dict__['key']
+
         # distinguish each event
         if not self.new_piece_needed:
-            if key == left_arrow:
+            if event.key == pygame.K_LEFT:
                 if self.is_move_valid("left"):
+                    print("lewo")
                     # if movement is possible move piece 1 unit to the left
                     self.piece_position_x -= self.square_size
-            elif key == right_arrow:
+            elif event.key == pygame.K_RIGHT:
                 if self.is_move_valid("right"):
                     # if movement is possible move piece 1 unit to the right
                     self.piece_position_x += self.square_size
-            elif key == down_arrow:
+            elif event.key == pygame.K_DOWN:
                 if self.is_move_valid("down"):
                     # if movement is possible move piece 1 unit down
                     self.piece_position_y += self.square_size
-            elif key == up_arrow:
+            elif event.key == pygame.K_UP:
                 # rotate piece validation inside function
                 self.rotate_piece()
 
